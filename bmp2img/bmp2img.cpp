@@ -118,4 +118,5 @@ int main(int argc, char* argv[])
 		oFile.write(dataBuff.get(), dataSize);
 
 	}
+	return 0;
 }
