@@ -1,11 +1,11 @@
 # MortalKombatGold.Tools
 Tools to mod Dreamcast game - Mortal Kombat Gold and Mortal Kombat 4 PC.
 
-| Tool | Description | Platform | 
+| Tool | Description | Game | 
 |     ---      |     ---        |    ---        | 
-| bmp2img   | Converts XRGB 16 Bitmap Images to IMG.     | Dreamcast   | 
-| img2bmp    | Converts IMG to Bitmap image.      | Dreamcast      | 
-| fsysextract    | Extracts File System archive.      | PC      | 
+| bmp2img   | Converts XRGB 16 Bitmap Images to IMG.     | MKG   | 
+| img2bmp    | Converts IMG to Bitmap image.      | MKG     | 
+| fsysextract    | Extracts File System archive.      | MK4      | 
 
 
 # Compilation
