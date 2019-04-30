@@ -1,4 +1,4 @@
-# MortalKombatGold.Tools
+# MortalKombat.Tools
 Tools to mod Dreamcast game - Mortal Kombat Gold and Mortal Kombat 4 PC.
 
 | Tool | Description | Game | 
