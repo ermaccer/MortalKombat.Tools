@@ -1,5 +1,5 @@
 # MortalKombat.Tools
-Tools to mod Dreamcast game - Mortal Kombat Gold and Mortal Kombat 4 PC.
+Tools to work with Mortal Kombat Gold (Dreamcast), Mortal Kombat 4 (PC) and War Gods (PC) files. 
 
 | Tool | Description | Game | 
 |     ---      |     ---        |    ---        | 
