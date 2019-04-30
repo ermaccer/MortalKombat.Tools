@@ -20,7 +20,7 @@ std::streampos getSizeToEnd(std::ifstream& is)
 	return length;
 }
 
-
+	
 
 int main(int argc, char* argv[])
 {
@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	// create output
 	std::ofstream oFile(argv[2], std::ofstream::binary);
 
 	// count files
@@ -49,6 +50,12 @@ int main(int argc, char* argv[])
 	}
 
 	closedir(pDir);
+
+	if (filesfound < 801 || filesfound > 801) {
+		std::cout << "ERROR: Less or more than 799 files found!" << std::endl;
+		return 1;
+	}
+
 	// create arrays
 	int* offsets, *sizes;
 	std::string* names;
