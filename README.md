@@ -1,5 +1,5 @@
 # MortalKombat.Tools
-Tools to work with Mortal Kombat Gold (Dreamcast), Mortal Kombat 4 (PC) and War Gods (PC) files. 
+Tools to work with Mortal Kombat and War Gods files.
 
 | Tool | Description | Game | Platform | 
 |     ---      |     ---        |    ---        |   ---        | 
