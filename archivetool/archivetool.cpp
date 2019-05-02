@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 {
 
 	if (argc == 1 || argc == 2) {
-		std::cout << "Usage archivetool <mode> <input> <export_table> \n Modes: \n create (pass mku_files.txt as input) \n extract (outputs to whatever folder is in .bin) \n \n \n export_table \n true - creates mku_files.txt for adjusting offsets later \n  Note: this param can be ignored" << std::endl;
+		std::cout << "Usage archivetool <mode> <input> <export_table> \n Modes: \n create  \n extract (outputs to whatever folder is in .bin) \n \n \n export_table \n true - creates mku_files.txt for adjusting offsets later \n  Note: this param can be ignored" << std::endl;
 		return 1;
 	}
 
