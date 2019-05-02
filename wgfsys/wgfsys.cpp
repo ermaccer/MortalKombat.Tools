@@ -33,11 +33,11 @@ std::streampos getSizeToEnd(std::ifstream& is)
 int main(int argc, char* argv[])
 {
 
-	if (argc == 1) {
+	if (argc == 1 || argc == 2) {
 		std::cout << "Usage wgfsys <mode> <input> <output> \n Modes: \n create (pass folder as input) \n extract (output is folder) " << std::endl;
 		return 1;
 	}
-
+		
 
 
 	if (strcmp(argv[1], "extract") == 0)
