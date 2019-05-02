@@ -2,21 +2,16 @@
 
 Pseudo-create and extract IMP archives from Mortal Kombat Unchained.
 
-`Usage: archivetool <mode> <input> <export_table>`
+`Usage: archivetool <mode> <input>`
 
 ### To extract
 Place ARCHIVE.BIN and ARCHIVE.IMP in the program location, then simply extract by executing:
 
 `archivetool extract archive.bin`
 
-Files are extracted to whatever is in .BIN.
+Files are extracted to whatever is in .BIN, another file is created - mku_files.txt.
 
 ### To rebuild
-Extract ARCHIVE.BIN with export_table set to true, this will create a file "mku_files.txt" which is required to rebuild.
-
-`archivetool extract archive.bin true`
-
-Then simply create an archive using
 
 `archivetool create archive.bin`
 
