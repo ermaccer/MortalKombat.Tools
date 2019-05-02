@@ -8,6 +8,7 @@ Tools to work with Mortal Kombat Gold (Dreamcast), Mortal Kombat 4 (PC) and War 
 | fsysextract    | Extracts File System archive.      | Mortal Kombat 4      | PC |
 | fsyscreate    | Creates File System archive.      | Mortal Kombat 4      | PC |
 | wgfsys    | Creates and extracts File System archives.      | War Gods      | PC |
+| archivetool    | (pseudo)Creates and extracts IMP archives.      | Mortal Kombat Unchained     | PSP|
 
 # Usage
 Run without params to get usage.
