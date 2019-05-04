@@ -1,44 +1,22 @@
-## ssfX
-Create and extract SSF archives and archives inside SFF
+## archiveTool
 
-`Usage: ssfx <mode> <input> <pad/table> <pad>`
+Pseudo-create and extract IMP archives from Mortal Kombat Unchained.
 
-mode - create/extract
-  
-input - input file, for creation - input *folder*
-
-pad/table - for extraction - pad(small/big) / for creation - table file 
-
-pad - small/big
+`Usage: archivetool <mode> <input>`
 
 ### To extract
+Place ARCHIVE.BIN and ARCHIVE.IMP in the program location, then simply extract by executing:
 
-`ssfx extract file.ssf padvalue`
+`archivetool extract archive.bin`
 
-Files are extracted to filename - extension folder in following pattern:
+Files are extracted to whatever is in .BIN, another file is created - mku_files.txt.
 
-`0.dat,1.dat...`
+### To rebuild
 
-Table filename is filename + .txt.
+`archivetool create archive.bin`
 
-Order filename is filename + _ order +.txt.
+Name of the IMP archive will be created from whatever is in .bin (usually ARCHIVE.IMP).
 
-**Pad values**
-
-Use "big" for full archives, eg. frost.ssf will require big mode;
-
-Use "small" for archives inside archives, eg. 1.dat inside frost.sff will require small mode;
-
-### To build
-
-`ssfx create folder folder.txt padvalue`
-
-Resulting file: foldername + .ssf.
-
-Same rules apply for padvalue as in extraction.
-
-Keep order file near .txt!
-
-To add more files to new archive, edit order file (keep order though).
-
-
+### About mku_files.txt
+This file contains .bin offsets and filenames, do not edit by hand nor add more files, the method 
+to rebuild archive bases on offsets only!
