@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 		bool isbig;
 		if (!pFile)
 		{
-			std::cout << "ERROR: Coult not open" << argv[2] << "!" << std::endl;
+			std::cout << "ERROR: Coult not open " << argv[2] << "!" << std::endl;
 			return 1;
 		}
 		
@@ -251,6 +251,7 @@ int main(int argc, char* argv[])
 			auto adjsizes = std::make_unique<int[]>(files);
 
 			auto dataValues = std::make_unique<std::string[]>(files);
+			auto dataValuesSize = 0;
 			auto names = std::make_unique<std::string[]>(files);
 			int i = 0;
 			while (std::getline(pFile, line))
@@ -265,6 +266,7 @@ int main(int argc, char* argv[])
 				std::stringstream ss(line);
 				ss >> dataValues[i];
 				headersize += dataValues[i].length() + 1;
+				dataValuesSize += dataValues[i].length() + 1;
 				i++;
 			}
 
@@ -322,7 +324,7 @@ int main(int argc, char* argv[])
 			
 
 			filesize += padsize;
-			if (isbig == false) filesize += 635;
+			if (isbig == false) filesize += 484;
 			if (isbig == true) filesize += 320;
 		   // create ssf header
 			SSFHeader ssf;
@@ -339,7 +341,16 @@ int main(int argc, char* argv[])
 
 			oArchive.write((char*)&ssf, sizeof(SSFHeader));
 			
-			int baseoffset = 500;
+			int baseoffset = sizeof(SSFEntry) * files + dataValuesSize + sizeof(SSFHeader) + padsize;
+
+			if (!(baseoffset % 512 == 0))
+			{
+				do
+				{
+					baseoffset++;
+				} while (baseoffset % 512 != 0);
+
+			}
 			if (isbig == true) baseoffset = 2048;
 			// create fileentries
 			int currentpad = 0;
@@ -371,19 +382,14 @@ int main(int argc, char* argv[])
 
 			if (isbig == false)
 			{
-
 				int size = headersize;
-				int diff = 512 - headersize;
-				if (!(size % 512 == 0))
-				{
 					do
 					{
-						std::string pad = "PAD128";
-						oArchive.write(pad.c_str(), pad.length());
+
+						char pad = 0xFF;
+						oArchive.write((char*)&pad, sizeof(pad));
 						size++;
 					} while (size % 512 != 0);
-				}
-				oArchive.seekp(500, oArchive.beg);
 			}
 
 
