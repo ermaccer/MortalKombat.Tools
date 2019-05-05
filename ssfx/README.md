@@ -1,5 +1,5 @@
 ## ssfX
-Create and extract SSF archives and archives inside SFF
+Create and extract SSF archives and archives inside SFF (does not work with some due to my laziness, will figure out later)
 
 `Usage: ssfx <mode> <input> <pad/table> <pad>`
 
