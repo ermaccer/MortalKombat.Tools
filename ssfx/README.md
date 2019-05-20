@@ -1,5 +1,5 @@
 ## ssfX
-Create and extract SSF archives and archives inside SFF.
+Create and extract SSF archives and archives inside SSF.
 
 `Usage: ssfx <mode> <input> <pad/table> <pad>`
 
@@ -27,7 +27,7 @@ Order filename is filename + _ order +.txt.
 
 Use "big" for full archives, eg. frost.ssf will require big mode;
 
-Use "small" for archives inside archives, eg. 1.dat inside frost.sff will require small mode;
+Use "small" for archives inside archives, eg. 1.dat inside frost.ssf will require small mode;
 
 ### To build
 
