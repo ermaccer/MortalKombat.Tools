@@ -7,6 +7,7 @@ Tools to work with Mortal Kombat and War Gods files.
 | img2bmp    | Converts IMG to Bitmap image.      | Mortal Kombat Gold     | Dreamcast |
 | fsysextract    | Extracts File System archive.      | Mortal Kombat 4      | PC |
 | fsyscreate    | Creates File System archive.      | Mortal Kombat 4      | PC |
+| esfcon    | Converts ESF files to WAVE      | Mortal Kombat 4      | PC |
 | wgfsys    | Creates and extracts File System archives.      | War Gods      | PC |
 | archivetool    | (pseudo)Creates and extracts IMP archives.      | Mortal Kombat Unchained     | PSP|
 | ssfx    | Creates and extracts SSF archives and archives inside SSF.      | Mortal Kombat Unchained/Armageddon  | PSP/PS2|
