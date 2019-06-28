@@ -11,7 +11,7 @@ Tools to work with Mortal Kombat and War Gods files.
 | wgfsys    | Creates and extracts File System archives.      | War Gods      | PC |
 | archivetool    | (pseudo)Creates and extracts IMP archives.      | Mortal Kombat Unchained     | PSP|
 | ssfx    | Creates and extracts SSF archives and archives inside SSF.      | Mortal Kombat Unchained/Armageddon  | PSP/PS2|
-
+| paktool    | Creates and extracts MKDA.PAK.      | Mortal Kombat Armageddon  | PS2|
 
 # Usage
 Run without params to get usage.
