@@ -9,6 +9,12 @@
 #include <filesystem>
 #include <sstream>
 
+void changeEndINT(int *value)
+{
+	*value = (*value & 0x000000FFU) << 24 | (*value & 0x0000FF00U) << 8 |
+		(*value & 0x00FF0000U) >> 8 | (*value & 0xFF000000U) >> 24;
+}
+
 
 struct SSFHeader {
 	int                   header; //  CES
@@ -38,43 +44,121 @@ std::streampos getSizeToEnd(std::ifstream& is)
 	return length;
 }
 
+enum eModes {
+	MODE_EXTRACT = 1,
+	MODE_CREATE,
+	PAD_SMALL,
+	PAD_BIG,
+	PARAM_GAMECUBE,
+	MODE_TEXTURE_INFO
+};
+
+
+enum eTexture {
+	PSP,
+	PS2,
+	GC
+};
+
 
 int main(int argc, char* argv[])
 {
 
-	if (argc == 1 || argc == 2 || argc == 3) {
-		std::cout << "Usage ssfx <mode> <input> <param> <pad>" << std::endl;
+	if (argc == 1) {
+		std::cout << "Usage: ssfx <params> <input>\n"
+			"Params: \n"
+			" -e   Extracts a file, creates table and order file for it\n"
+			" -c   Creates a file from input folder\n"
+			" -g   Allows to work with Gamecube/WII files\n"
+			" -b   Switches large pad value\n"
+			" -s   Switches small pad value (used for .dats)\n"
+			" -t   Specifies table file\n"
+			" -T   Analyzes texture file\n"
+			"Examples:\n"
+			"ssfx -e -b frost.ssf - Extracts main .ssf for frost\n"
+			"ssfx -c -b -t frost.txt frost - Creates main .ssf for frost from a folder\n"
+	    	"ssfx -T RAIN_002 - Gives information (name, size, offsets) about a texture\n";
 		return 1;
 	}
 
-	if (!(strcmp(argv[1], "extract") == 0 || strcmp(argv[1], "create") == 0))
+	int mode = 0;
+	int param = 0;
+	int pad = 0;
+	std::string table;
+
+	// params
+	for (int i = 1; i < argc - 1; i++)
 	{
-		std::cout << "ERROR: Invalid mode" << std::endl;
-		return 1;
+		if (argv[i][0] != '-' || strlen(argv[i]) != 2) {
+			return 1;
+		}
+		switch (argv[i][1])
+		{
+		case 'e': mode = MODE_EXTRACT;
+			break;
+		case 'c': mode = MODE_CREATE;
+			break;
+		case 'g': param = PARAM_GAMECUBE;
+			break;
+		case 'b': pad = PAD_BIG;
+			break;
+		case 's': pad = PAD_SMALL;
+			break;
+		case 't':
+			i++;
+			table = argv[i];
+			break;
+		case 'T': mode = MODE_TEXTURE_INFO;
+			break;
+		default:
+			std::cout << "ERROR: Param does not exist: " << argv[i] << std::endl;
+			break;
+		}
 	}
 
-	if (strcmp(argv[1], "extract") == 0)
+
+	if (mode == MODE_EXTRACT)
 	{
-		std::ifstream pFile(argv[2], std::ifstream::binary);
-		bool isbig;
+		std::ifstream pFile(argv[argc - 1], std::ifstream::binary);
+
+		if (!(pad == PAD_BIG || pad == PAD_SMALL))
+		{
+			std::cout << "ERROR: Pad value was not specified!" << std::endl;
+			return 1;
+		}
+
 		if (!pFile)
 		{
-			std::cout << "ERROR: Coult not open " << argv[2] << "!" << std::endl;
+			std::cout << "ERROR: Could not open " << argv[argc - 1] << "!" << std::endl;
 			return 1;
 		}
 		
-
-
-
 		if (pFile)
 		{
 			// read headers
 			SSFHeader ssf;
 			pFile.read((char*)&ssf, sizeof(ssf));
+			
 
-			if (ssf.header != 'SEC ')
+			if (param == PARAM_GAMECUBE)
 			{
-				std::cout << "ERROR: " << argv[2] << "is not a SEC type archive!" << std::endl;
+				changeEndINT(&ssf.header);
+				changeEndINT(&ssf.files);
+				changeEndINT(&ssf.filesize);
+				changeEndINT(&ssf.val1);
+				changeEndINT(&ssf.val2);
+				changeEndINT(&ssf.val3);
+				changeEndINT(&ssf.val4);
+				if (ssf.header != 'SEC ') {
+					std::cout << "ERROR: " << argv[argc - 1] << " is not a SEC type archive!" << std::endl;
+					return 1;
+				}
+
+			}
+			else if (ssf.header != 'SEC ')
+			{
+				std::cout << "ERROR: " << argv[argc - 1] << " is not a SEC type archive!" << std::endl;
+				if (ssf.header == ' CES') std::cout << "INFO: Use -g switch for this file!" << std::endl;
 				return 1;
 			}
 
@@ -86,19 +170,18 @@ int main(int argc, char* argv[])
 			for (int i = 0; i < ssf.files; i++)
 			{
 				pFile.read((char*)&ssfe[i], sizeof(SSFEntry));
+				if (param == PARAM_GAMECUBE)
+				{
+					changeEndINT(&ssfe[i].size);
+					changeEndINT(&ssfe[i].offset);
+					changeEndINT(&ssfe[i].type);
+					changeEndINT(&ssfe[i].pad);
+				}
 			}
-
-			if (!(strcmp(argv[3], "small") == 0 || strcmp(argv[3], "big") == 0))
-			{
-				std::cout << "ERROR: Invalid value for <pad>!" << std::endl;
-				return 1;
-			}
-			if ((strcmp(argv[3], "small") == 0)) isbig = false;
-			if ((strcmp(argv[3], "big") == 0)) isbig = true;
 
 			// skip pad
 			int padsize;
-			if (isbig == false)
+			if (pad == PAD_SMALL)
 			{
 				padsize = 0;
 
@@ -115,25 +198,22 @@ int main(int argc, char* argv[])
 				}
 			}
 				
-			if (isbig == true) {
+			if (pad == PAD_BIG) {
 				padsize = 2048 - (sizeof(SSFHeader) + (sizeof(SSFEntry) * ssf.files));
 				char*  pad = new char[padsize];
 				pFile.read((char*)&pad, sizeof(pad));
 				delete[] pad;
 			}
 
-
-
-
 			//get files
 			for (int i = 0; i < ssf.files; i++)
 			{
 
-				std::string output = argv[2];
+				std::string output = argv[argc - 1];
 				output.erase(output.length() - 3.3);
 				output.insert(output.length(), "\\");
 				std::experimental::filesystem::create_directory(output);
-				if (isbig == false)
+				if (pad == PAD_SMALL)
 					output.insert(output.length(), dataValues[i]);
 				else output.insert(output.length(), std::to_string(i) + ".dat");
 
@@ -149,9 +229,9 @@ int main(int argc, char* argv[])
 
 
 			std::ofstream pTable,oOrder;
-			std::string table = argv[2];
+			std::string table = argv[argc - 1];
 			table.erase(table.length() - 4, 4);
-			if (isbig == false)
+			if (pad == PAD_SMALL)
 			{
 				std::string nameorder = table;
 				nameorder.insert(nameorder.length(), "_order.txt");
@@ -178,7 +258,7 @@ int main(int argc, char* argv[])
 			{
 				pTable << ssfe[i].type << std::endl;
 			}
-			if (isbig == false)
+			if (pad == PAD_SMALL)
 			{
 				for (int i = 0; i < values; i++)
 				{
@@ -189,37 +269,32 @@ int main(int argc, char* argv[])
 		}
 		std::cout << "Finished." << std::endl;
 	}
-	if (strcmp(argv[1], "create") == 0)
+	if (mode == MODE_CREATE)
 	{
-		if (argv[3] == 0 || argv[4] == 0)
-		{
-			std::cout << "ERROR: Not enough arguments!" << std::endl;
+		if (table.empty()) {
+			std::cout << "ERROR: Table File was not specified!" << std::endl;
 			return 1;
 		}
 
-		if (!(strcmp(argv[4], "small") == 0 || strcmp(argv[4], "big") == 0))
+		std::ifstream pFile(table, std::ifstream::binary);
+		if (!(pad == PAD_BIG || pad == PAD_SMALL))
 		{
-			std::cout << "ERROR: Invalid value for <pad>!" << std::endl;
+			std::cout << "ERROR: Pad value was not specified!" << std::endl;
 			return 1;
 		}
-		
-		bool isbig;
-		std::ifstream pFile(argv[3], std::ifstream::binary);
 
 		if (!pFile)
 		{
-			std::cout << "ERROR: Coult not open " << argv[3] << "!" << std::endl;
+			std::cout << "ERROR: Could not open " << table << "!" << std::endl;
 			return 1;
 		}
 
-		if ((strcmp(argv[4], "small") == 0)) isbig = false;
-		if ((strcmp(argv[4], "big") == 0)) isbig = true;
 		std::ifstream pOrder;
 
-		std::ifstream tNames(argv[3], std::ifstream::binary);
-		if (isbig == false)
+		std::ifstream tNames(table, std::ifstream::binary);
+		if (pad == PAD_SMALL)
 		{
-			std::string order = argv[3];
+			std::string order = table;
 			order.insert(order.length() - 4, "_order");
 			pOrder.open(order, std::ifstream::binary);
 			if (!pOrder)
@@ -258,6 +333,7 @@ int main(int argc, char* argv[])
 			{
 				std::stringstream ss(line);
 				ss >> filetypes[i];
+
 				i++;
 			}
 			i = 0;
@@ -272,7 +348,7 @@ int main(int argc, char* argv[])
 
 			// skip pad
 			int padsize;
-			if (isbig == false) padsize = 0;
+			if (pad == PAD_SMALL) padsize = 0;
 			else padsize = 2048 - (sizeof(SSFHeader) + (sizeof(SSFEntry) * files));
 
 
@@ -282,11 +358,11 @@ int main(int argc, char* argv[])
 			{
 				std::string input;
 				input = std::to_string(i) + ".dat";
-				if (isbig == false)
+				if (pad == PAD_SMALL)
 					input = dataValues[i];
 
-				std::string folder = argv[2];
-				input.insert(0, argv[2]);
+				std::string folder = argv[argc - 1];
+				input.insert(0, argv[argc - 1]);
 				input.insert(folder.length(), "\\");
 				names[i] = input;
 				std::ifstream pInput(input, std::ifstream::binary);
@@ -296,7 +372,7 @@ int main(int argc, char* argv[])
 				{
 					sizes[i] = (int)getSizeToEnd(pInput);
 					int buffedsize = 0;
-					if (isbig == true)
+					if (pad == PAD_BIG)
 					{
 						if (!(sizes[i] % 2048 == 0))
 						{
@@ -313,7 +389,7 @@ int main(int argc, char* argv[])
 						filesize += adjsizes[i];
 
 					}
-					if (isbig == false)
+					if (pad == PAD_SMALL)
 
 						filesize += sizes[i];
 
@@ -324,8 +400,8 @@ int main(int argc, char* argv[])
 			
 
 			filesize += padsize;
-			if (isbig == false) filesize += 484;
-			if (isbig == true) filesize += 320;
+			if (pad == PAD_SMALL) filesize += 484;
+			if (pad == PAD_BIG) filesize += 320;
 		   // create ssf header
 			SSFHeader ssf;
 			ssf.header = 'SEC ';
@@ -335,9 +411,20 @@ int main(int argc, char* argv[])
 			ssf.val2 = filetypes[1];
 			ssf.val3 = filetypes[2];
 			ssf.val4 = filetypes[3];
-			std::string fileout = argv[3];
+			std::string fileout = table;
 			fileout.replace(fileout.length() - 4, 4, ".ssf");
 			std::ofstream oArchive(fileout, std::ofstream::binary | std::ofstream::out);
+
+			if (param == PARAM_GAMECUBE)
+			{
+				changeEndINT(&ssf.header);
+				changeEndINT(&ssf.files);
+				changeEndINT(&ssf.filesize);
+				changeEndINT(&ssf.val1);
+				changeEndINT(&ssf.val2);
+				changeEndINT(&ssf.val3);
+				changeEndINT(&ssf.val4);
+			}
 
 			oArchive.write((char*)&ssf, sizeof(SSFHeader));
 			
@@ -351,7 +438,7 @@ int main(int argc, char* argv[])
 				} while (baseoffset % 512 != 0);
 
 			}
-			if (isbig == true) baseoffset = 2048;
+			if (pad == PAD_BIG) baseoffset = 2048;
 			// create fileentries
 			int currentpad = 0;
 			for (int i = 0; i < files; i++)
@@ -360,7 +447,7 @@ int main(int argc, char* argv[])
 				ent.offset = baseoffset;
 				ent.pad = 0x7C801A4F;
 
-				if (isbig == false)
+				if (pad == PAD_SMALL)
 				{
 					ent.pad = currentpad;
 					baseoffset += sizes[i];
@@ -368,6 +455,13 @@ int main(int argc, char* argv[])
 				else baseoffset += adjsizes[i];
 				ent.size = sizes[i];
 				ent.type = filetypes[i + 4];
+				if (param == PARAM_GAMECUBE)
+				{
+					changeEndINT(&ent.size);
+					changeEndINT(&ent.offset);
+					changeEndINT(&ent.type);
+					changeEndINT(&ent.pad);
+				}
 				oArchive.write((char*)&ent, sizeof(SSFEntry));
 				currentpad += dataValues[i].length() + 1;
 				headersize += sizeof(SSFEntry);
@@ -380,7 +474,7 @@ int main(int argc, char* argv[])
 
 			 oArchive.seekp(headersize, oArchive.beg);
 
-			if (isbig == false)
+			if (pad == PAD_SMALL)
 			{
 				int size = headersize;
 					do
@@ -394,7 +488,7 @@ int main(int argc, char* argv[])
 
 
 
-			if (isbig == true)
+			if (pad == PAD_BIG)
 			{
 				for (int i = 0; i < padsize; i++)
 				{
@@ -417,7 +511,7 @@ int main(int argc, char* argv[])
 					pArcFile.read(dataBuff.get(), dataSize);
 					std::cout << "Processing: " << names[i] << std::endl;
 					oArchive.write(dataBuff.get(), dataSize);
-					if (isbig == true)
+					if (pad == PAD_BIG)
 					{
 						if (!(size % 2048 == 0))
 						{
@@ -434,7 +528,82 @@ int main(int argc, char* argv[])
 			std::cout << "Finished." << std::endl;
 		}
 	}
-	
+	if (mode == MODE_TEXTURE_INFO)
+	{
+		std::ifstream pFile(argv[argc - 1], std::ifstream::binary);
+
+		if (!pFile)
+		{
+			std::cout << "ERROR: Could not open " << argv[argc - 1] << "!" << std::endl;
+			return 1;
+		}
+
+		if (pFile)
+		{
+
+			int texture = PSP;
+			// get texture name
+			char strlen;
+			pFile.read((char*)&strlen, sizeof(char));
+			// most likely ps2
+			if (strlen == 0)
+			{
+				pFile.seekg(sizeof(int), pFile.beg);
+				pFile.read((char*)&strlen, sizeof(char));
+				texture = PS2;
+			}
+			auto buff = std::make_unique<char[]>(strlen);
+			pFile.read(buff.get(), strlen);
+			std::string name(buff.get(), strlen);
+
+			// get texture size;
+			int x, y;
+
+			pFile.read((char*)&x, sizeof(int));
+			pFile.read((char*)&y, sizeof(int));
+
+			if (param == PARAM_GAMECUBE)
+			{
+				changeEndINT(&x);
+				changeEndINT(&y);
+				texture = GC;
+			}
+			
+			if (x > 4096 || y > 4096)
+			{
+				std::cout << "ERROR: Invalid texture size. Add or remove -g switch." << std::endl;
+				return 1;
+			}
+
+
+
+			std::cout << "Texture Information\n"
+				"Name: " << name << std::endl <<
+			"X: " << x << " Y: " << y << std::endl;
+
+			if (texture == PSP)
+			{
+				std::cout << "Platform: PSP" << std::endl;
+				std::cout << "Possible offsets\n"
+					// header size
+					<< "Palette: " << 0xD0 << std::endl
+					// header size + pal size
+					<< "Graphics: " << 0xD0 + 1024 << std::endl;
+			}
+			if (texture == PS2)
+			{
+				std::cout << "Platform: PS2" << std::endl;
+				std::cout << "Possible offsets\n"
+					// header + image data + some pad?
+					<< "Palette: " << 0x250 + x * y  + 128<< std::endl
+					// header size
+					<< "Graphics: " << 0x250 << std::endl;
+			}
+			if (texture == GC)
+				std::cout << "Platform: GC/WII" << std::endl;
+		   
+		}
+	}
 
 	
 
