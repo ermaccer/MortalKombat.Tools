@@ -35,6 +35,13 @@ struct SSFEntry {
 };
 
 
+struct MKOHeader {
+	int     unk[2]; // script number (?) and some big number
+	int     scriptNameSize;
+	int     scriptStringSize; // padded to 8 like .pak
+};
+
+
 std::streampos getSizeToEnd(std::ifstream& is)
 {
 	auto currentPosition = is.tellg();
@@ -50,7 +57,7 @@ enum eModes {
 	PAD_SMALL,
 	PAD_BIG,
 	PARAM_GAMECUBE,
-	MODE_TEXTURE_INFO
+	MODE_TEXTURE_INFO,
 };
 
 
@@ -71,12 +78,15 @@ int main(int argc, char* argv[])
 			" -c   Creates a file from input folder\n"
 			" -g   Allows to work with Gamecube/WII files\n"
 			" -b   Switches large pad value\n"
-			" -s   Switches small pad value (used for .dats)\n"
+			" -s   Switches small pad value (used for .dats/.secs)\n"
 			" -t   Specifies table file\n"
+			" -l   Specifies list with filenames to use\n"
 			" -T   Analyzes texture file\n"
 			"Examples:\n"
 			"ssfx -e -b frost.ssf - Extracts main .ssf for frost\n"
 			"ssfx -c -b -t frost.txt frost - Creates main .ssf for frost from a folder\n"
+			"ssfx -e -b -l filelist.txt frost.ssf - Extracts main .ssf using name list\n"
+			"ssfx -c -s -l filelist.txt -t table.txt folder - Creates small .ssf using name list\n"
 	    	"ssfx -T RAIN_002 - Gives information (name, size, offsets) about a texture\n";
 		return 1;
 	}
@@ -84,7 +94,9 @@ int main(int argc, char* argv[])
 	int mode = 0;
 	int param = 0;
 	int pad = 0;
+	int extra = 0;
 	std::string table;
+	std::string list;
 
 	// params
 	for (int i = 1; i < argc - 1; i++)
@@ -107,6 +119,10 @@ int main(int argc, char* argv[])
 		case 't':
 			i++;
 			table = argv[i];
+			break;
+		case 'l':
+			i++;
+			list = argv[i];
 			break;
 		case 'T': mode = MODE_TEXTURE_INFO;
 			break;
@@ -181,6 +197,26 @@ int main(int argc, char* argv[])
 
 			// skip pad
 			int padsize;
+			if (pad == PAD_BIG)
+			{
+				if (!list.empty())
+				{
+					std::ifstream pList(list,std::ifstream::binary);
+					if (!pList)
+					{
+						std::cout << "ERROR: Could not open list file: " << list << "!" << std::endl;
+						return 1;
+					}
+					int i = 0;
+					while (std::getline(pList, line))
+					{
+						std::stringstream ss(line);
+						ss >> dataValues[i];
+						i++;
+					}
+				}
+			}
+
 			if (pad == PAD_SMALL)
 			{
 				padsize = 0;
@@ -213,9 +249,13 @@ int main(int argc, char* argv[])
 				output.erase(output.length() - 3.3);
 				output.insert(output.length(), "\\");
 				std::experimental::filesystem::create_directory(output);
+				if (pad == PAD_BIG && list.empty())
+					output.insert(output.length(), std::to_string(i) + ".dat");
+				if (pad == PAD_BIG && !list.empty())
+				    output.insert(output.length(), dataValues[i]);
 				if (pad == PAD_SMALL)
 					output.insert(output.length(), dataValues[i]);
-				else output.insert(output.length(), std::to_string(i) + ".dat");
+
 
 
 				std::ofstream oFile(output, std::ofstream::binary);
@@ -337,14 +377,33 @@ int main(int argc, char* argv[])
 				i++;
 			}
 			i = 0;
-			while (std::getline(pOrder, line))
+			if (pad == PAD_SMALL)
 			{
-				std::stringstream ss(line);
-				ss >> dataValues[i];
-				headersize += dataValues[i].length() + 1;
-				dataValuesSize += dataValues[i].length() + 1;
-				i++;
+				while (std::getline(pOrder, line))
+				{
+					std::stringstream ss(line);
+					ss >> dataValues[i];
+					headersize += dataValues[i].length() + 1;
+					dataValuesSize += dataValues[i].length() + 1;
+					i++;
+				}
 			}
+			if (pad == PAD_BIG && !list.empty())
+			{
+				std::ifstream pList(list, std::ifstream::binary);
+				if (!pList)
+				{
+					std::cout << "ERROR: Could not open list file: " << list << "!" << std::endl;
+					return 1;
+				}
+				while (std::getline(pList, line))
+				{
+					std::stringstream ss(line);
+					ss >> dataValues[i];
+					i++;
+				}
+			}
+
 
 			// skip pad
 			int padsize;
@@ -357,6 +416,9 @@ int main(int argc, char* argv[])
 			for (int i = 0; i < files; i++)
 			{
 				std::string input;
+				if (pad == PAD_BIG && !list.empty())
+					input = dataValues[i];
+				if (pad == PAD_BIG && list.empty())
 				input = std::to_string(i) + ".dat";
 				if (pad == PAD_SMALL)
 					input = dataValues[i];
