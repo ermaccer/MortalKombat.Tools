@@ -17,7 +17,7 @@ Tools to work with Mortal Kombat and War Gods files.
 # Usage
 Run without params to get usage.
 
-Check tool folder for detailed readme (if it exists).
+Check tool folder or wiki for detailed readme (if it exists).
 
 # Compilation
 All tools were compiled using Visual Studio 2015. 
