@@ -10,7 +10,7 @@ Tools to work with Mortal Kombat and War Gods files.
 | esfcon    | Converts ESF files to WAVE      | Mortal Kombat 4      | PC |
 | wgfsys    | Creates and extracts File System archives.      | War Gods      | PC |
 | archivetool    | (pseudo)Creates and extracts IMP archives.      | Mortal Kombat Unchained     | PSP|
-| ssfx    | Creates and extracts SSF archives and archives inside SSF.      | Mortal Kombat D/DA/A/U | PSP/PS2/GC/WII|
+| ssfx    | Creates and extracts SSF archives and archives inside SSF.      | Mortal Kombat D/A/U | PSP/PS2/GC/WII|
 | paktool    | Creates and extracts MKDA.PAK.      | Mortal Kombat Armageddon  | PS2|
 | cdfextract    | Extracts .cdf archives (not all tested).      | Mortal Kombat Special Forces  | PS1|
 
