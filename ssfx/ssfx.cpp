@@ -27,12 +27,20 @@ struct SSFHeader {
 
 };
 
+
 struct SSFEntry {
 	int            type;
 	int            offset;
 	int            size;
 	int            pad; // 0x7C801A4F
 };
+
+struct SSFEntryDA {
+	int           offset;
+	int           size;
+	int           type;
+};
+
 
 
 struct MKOHeader {
@@ -58,6 +66,7 @@ enum eModes {
 	PAD_BIG,
 	PARAM_GAMECUBE,
 	MODE_TEXTURE_INFO,
+	MODE_DEADLY
 };
 
 
@@ -81,6 +90,7 @@ int main(int argc, char* argv[])
 			" -s   Switches small pad value (used for .dats/.secs)\n"
 			" -t   Specifies table file\n"
 			" -l   Specifies list with filenames to use\n"
+			" -d   Allows to work with Deadly Alliance files\n"
 			" -T   Analyzes texture file\n"
 			"Examples:\n"
 			"ssfx -e -b frost.ssf - Extracts main .ssf for frost\n"
@@ -126,12 +136,13 @@ int main(int argc, char* argv[])
 			break;
 		case 'T': mode = MODE_TEXTURE_INFO;
 			break;
+		case 'd': extra = MODE_DEADLY;
+			break;
 		default:
 			std::cout << "ERROR: Param does not exist: " << argv[i] << std::endl;
 			break;
 		}
 	}
-
 
 	if (mode == MODE_EXTRACT)
 	{
@@ -179,12 +190,24 @@ int main(int argc, char* argv[])
 			}
 
 			auto ssfe = std::make_unique<SSFEntry[]>(ssf.files);
+			auto ssfeDA = std::make_unique<SSFEntryDA[]>(ssf.files);
 			auto dataValues = std::make_unique<std::string[]>(ssf.files);
 			int values = 0;
 			std::string line;
 			// read entries
 			for (int i = 0; i < ssf.files; i++)
 			{
+				if (extra == MODE_DEADLY)
+				{
+					pFile.read((char*)&ssfeDA[i], sizeof(SSFEntryDA));
+					if (param == PARAM_GAMECUBE)
+					{
+						changeEndINT(&ssfeDA[i].size);
+						changeEndINT(&ssfeDA[i].offset);
+						changeEndINT(&ssfeDA[i].type);
+					}
+				}
+				else
 				pFile.read((char*)&ssfe[i], sizeof(SSFEntry));
 				if (param == PARAM_GAMECUBE)
 				{
@@ -217,7 +240,7 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			if (pad == PAD_SMALL)
+			if (pad == PAD_SMALL && extra != MODE_DEADLY)
 			{
 				padsize = 0;
 
@@ -235,6 +258,14 @@ int main(int argc, char* argv[])
 			}
 				
 			if (pad == PAD_BIG) {
+				if (extra == MODE_DEADLY)
+				{
+					padsize = 2048 - (sizeof(SSFHeader) + (sizeof(SSFEntryDA) * ssf.files));
+					char*  pad = new char[padsize];
+					pFile.read((char*)&pad, sizeof(pad));
+					delete[] pad;
+				}
+				else
 				padsize = 2048 - (sizeof(SSFHeader) + (sizeof(SSFEntry) * ssf.files));
 				char*  pad = new char[padsize];
 				pFile.read((char*)&pad, sizeof(pad));
@@ -253,15 +284,27 @@ int main(int argc, char* argv[])
 					output.insert(output.length(), std::to_string(i) + ".dat");
 				if (pad == PAD_BIG && !list.empty())
 				    output.insert(output.length(), dataValues[i]);
+				if (pad == PAD_SMALL && extra == MODE_DEADLY)
+					output.insert(output.length(), std::to_string(i) + ".dat");
 				if (pad == PAD_SMALL)
 					output.insert(output.length(), dataValues[i]);
 
 
 
+
 				std::ofstream oFile(output, std::ofstream::binary);
+
 				pFile.seekg(ssfe[i].offset, pFile.beg);
-				std::cout << "Extracting: " << output << " Size: " << ssfe[i].size << std::endl;
+				if (extra == MODE_DEADLY)
+					pFile.seekg(ssfeDA[i].offset, pFile.beg);
+
+				if (extra == MODE_DEADLY)
+			    	std::cout << "Extracting: " << output << " Size: " << ssfeDA[i].size << std::endl;
+				else std::cout << "Extracting: " << output << " Size: " << ssfe[i].size << std::endl;
 				auto dataSize = ssfe[i].size;
+
+				if (extra == MODE_DEADLY)
+					dataSize = ssfeDA[i].size;
 				auto dataBuff = std::make_unique<char[]>(dataSize);
 				pFile.read(dataBuff.get(), dataSize);
 				oFile.write(dataBuff.get(), dataSize);
@@ -309,8 +352,17 @@ int main(int argc, char* argv[])
 		}
 		std::cout << "Finished." << std::endl;
 	}
+
+
 	if (mode == MODE_CREATE)
 	{
+
+		if (extra == MODE_DEADLY)
+		{
+			std::cout << "INFO: Creation is not possible with Deadly Alliance." << std::endl;
+			return 1;
+		}
+
 		if (table.empty()) {
 			std::cout << "ERROR: Table File was not specified!" << std::endl;
 			return 1;
@@ -590,6 +642,8 @@ int main(int argc, char* argv[])
 			std::cout << "Finished." << std::endl;
 		}
 	}
+
+
 	if (mode == MODE_TEXTURE_INFO)
 	{
 		std::ifstream pFile(argv[argc - 1], std::ifstream::binary);
