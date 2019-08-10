@@ -1,0 +1,44 @@
+EU - 205F81D8 for P1
+
+0 - Scorpion
+1 - Baraka
+2 - Noob
+3 - Sub Zero
+4 - Mileena
+5 - Nightwolf
+6 - Ermac
+7 - Ashrah
+8 - Sindel
+9 - Li Mei
+10 - Bo Rai Cho
+11 - Hotaru
+12 - Kenshi
+13 - Smoke
+14 - Havik
+15 - Tanya
+16 - Liu Kang
+17 - Ghost
+18 - Kira
+19 - Kabal
+20 - Kobra
+21 - Jade
+22 - Dairou
+23 - Raiden
+24 - Darrius
+25 - Shujinko
+26 - Young Shujinko
+27 - Noob Smoke
+28 - Monster
+29 - Onaga
+30 - MKDA Jax
+31 - MKDA Raiden
+32 - MKDA Quan Chi
+33 - MKDA Kung Lao
+34 - MKDA Cage
+35 - MKDA Sonya
+36 - MKDA Nitara
+37 - MKDA Shang Tsung
+38 - MKDA Frost
+39 - MKDA Kitana
+40 - MKDA Drahmin
+41 - Bo Rai Cho clone?
