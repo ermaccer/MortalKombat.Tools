@@ -14,6 +14,7 @@ Tools to work with Mortal Kombat and War Gods files.
 | paktool    | Creates and extracts MKDA.PAK.      | Mortal Kombat DA/D/A   | PS2|
 | cdfextract    | Extracts .cdf archives (not all tested).      | Mortal Kombat Special Forces  | PS1|
 | texconv   | Converts textures to Bitmap images.     | Mortal Kombat D/A/U   | PS2/PSP|
+| sndtool    | Extract and create sound archives     | Mortal Kombat Trilogy      | PC |
 
 # Usage
 Run without params to get usage.
