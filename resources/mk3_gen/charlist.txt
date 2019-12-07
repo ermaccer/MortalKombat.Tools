@@ -1,0 +1,24 @@
+GameGenie Code:
+FF0127:00XX
+FFDC7B:00XX
+
+Replace X with character
+
+00 - Shang Tsung
+01 - Sindel
+02 - Jax
+03 - Kano
+04 - Liu Kang
+05 - Sonya
+06 - Stryker
+07 - Smoke
+08 - Sub-Zero
+09 - Cyrax
+0A - Sektor
+0B - Nightwolf
+0C - Sheeva
+0D - Kung Lao
+OE - Kabal
+0F - Motaro
+10 - Shao Kahn
+11 - Noob Saibot
