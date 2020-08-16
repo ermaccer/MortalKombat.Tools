@@ -12,7 +12,7 @@ Tools to work with Mortal Kombat and War Gods files.
 | archivetool    | (pseudo)Creates and extracts IMP archives.      | Mortal Kombat Unchained     | PSP|
 | ssfx    | Creates and extracts SSF archives and archives inside SSF.      | Mortal Kombat DA/D/A/U | PSP/PS2/GC/WII/XBX|
 | paktool    | Creates and extracts MKDA.PAK.      | Mortal Kombat DA/D/A   | PS2|
-| toceditor    | Dumps and injects TOC tables.      | Mortal Kombat DA/D/A   | PS2/PSP/XBX|
+| toceditor    | Dumps and injects TOC tables.      | Mortal Kombat D/A/U | PS2/PSP/XBX|
 | cdfextract    | Extracts .cdf archives (not all tested).      | Mortal Kombat Special Forces  | PS1|
 | texconv   | Converts textures to Bitmap images.     | Mortal Kombat D/A/U   | PS2/PSP|
 | sndtool    | Extract and create sound archives     | Mortal Kombat Trilogy      | PC |
